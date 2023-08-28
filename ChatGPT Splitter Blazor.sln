@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33723.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatGPT Splitter Blazor New", "ChatGPT Splitter Blazor\ChatGPT Splitter Blazor New.csproj", "{504E14A1-22B6-4737-B6E1-D1FC0593EBA3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{504E14A1-22B6-4737-B6E1-D1FC0593EBA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{504E14A1-22B6-4737-B6E1-D1FC0593EBA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{504E14A1-22B6-4737-B6E1-D1FC0593EBA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{504E14A1-22B6-4737-B6E1-D1FC0593EBA3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A7E25AD1-BBE1-4045-9B26-AB37ADE4C1B6}
+	EndGlobalSection
+EndGlobal

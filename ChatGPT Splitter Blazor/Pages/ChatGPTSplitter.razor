@@ -1,0 +1,73 @@
+﻿@page "/"
+
+<PageTitle>ChatGPT Splitter Blazor</PageTitle>
+
+<div class="container my-5" style="padding-bottom: 8rem;">
+    <div class="row">
+        <div class="col-sm-8 offset-sm-2">
+            <h1><a href="" @onclick="ReloadPage">ChatGPT Splitter</a></h1>
+
+            <p>
+                Welcome to <b>ChatGPT Splitter</b>! This tool allows you to...
+            </p>
+            <hr class="my-3">
+
+            <EditForm Model="formData" OnValidSubmit="HandleValidSubmit">
+                <div class="form-group">
+                    <label for="file">Upload file(s)</label>
+                    <InputFile id="file" class="form-control-file" @bind-Value="formData.File" multiple />
+                </div>
+
+                <div class="form-group">
+                    <label for="text">Or paste your text</label>
+                    <InputTextArea id="text" class="form-control my-3" @bind-Value="formData.Text" rows="3" placeholder="Or paste your text here" />
+                </div>
+
+                <div class="row">
+                    <div class="col-8">
+                        <label for="prompt" class="pr-2">Prompt:</label>
+                        <InputTextArea id="prompt" class="form-control" rows="3" placeholder="Enter prompt here" @bind-Value="formData.Prompt" />
+                    </div>
+                    <div class="col-4">
+                        <label for="chunk_size">Chunk size:</label>
+                        <InputNumber id="chunk_size" class="form-control" @bind-Value="formData.ChunkSize" />
+                    </div>
+
+                </div>
+
+
+
+                <div class="form-group mt-3">
+                    <button type="submit" class="btn btn-primary">Process</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+
+    <hr class="my-3">
+</div>
+
+@code {
+    private FormData formData = new FormData();
+
+    private void ReloadPage()
+    {
+
+        // Ricarica la pagina
+        //NavManager.NavigateTo("/splitter", forceLoad: true);
+    }
+
+    private void HandleValidSubmit()
+    {
+        // Qui gestisci l'invio del form
+    }
+
+    private class FormData
+    {
+        public string Text { get; set; }
+        public IBrowserFile File { get; set; }
+        public string Prompt { get; set; }
+        public int ChunkSize { get; set; } = 15000; 
+    }
+
+}
