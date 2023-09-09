@@ -13,13 +13,13 @@
             <hr class="my-3">
 
             <EditForm Model="formData" OnValidSubmit="HandleValidSubmit">
-                <div class="form-group">
+               @*  <div class="form-group">
                     <label for="file">Upload file(s)</label>
                     <InputFile id="file" class="form-control-file" @bind-Value="formData.File" multiple />
-                </div>
+                </div> *@
 
                 <div class="form-group">
-                    <label for="text">Or paste your text</label>
+                    <label for="text">Paste your text</label>
                     <InputTextArea id="text" class="form-control my-3" @bind-Value="formData.Text" rows="3" placeholder="Or paste your text here" />
                 </div>
 
@@ -45,12 +45,24 @@
     </div>
 
     <hr class="my-3">
+    
+    
+    @foreach (var chunk in chunks)
+    {
+        <div class="col-sm-8 offset-sm-2">
+            <h2>@(chunks.IndexOf(chunk)+1)/@chunks.Count</h2>
+            <textarea id="@($"chunk-{chunks.IndexOf(chunk)}")" class="form-control my-3" rows="10" readonly="">@chunk</textarea>
+            <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{chunks.IndexOf(chunk)}")">Copy</button>
+        </div>
+    }
+
 </div>
 
 @code {
     private FormData formData = new FormData();
+    List<string> chunks = new List<string>();
 
-    private void ReloadPage()
+    private static void ReloadPage()
     {
 
         // Ricarica la pagina
@@ -59,14 +71,74 @@
 
     private void HandleValidSubmit()
     {
-        // Qui gestisci l'invio del form
+        var textValue = formData.Text;
+        var chunkSizeValue = formData.ChunkSize;
+
+        // 1. Conteggio dei Token
+        //https://www.nuget.org/packages/Tiktoken/1.1.1#show-readme-container
+        var encoding = Tiktoken.Encoding.ForModel("gpt-4");
+        var numberOfTokens = encoding.CountTokens(textValue); 
+
+        // 2. Determina il Numero di Chunk
+        int numberOfChunks = (int)Math.Ceiling((double)numberOfTokens / chunkSizeValue);
+
+        // 3. Trova Punti di Spezzatura Possibili
+        List<int> breakPoints = FindBreakPoints(textValue);
+
+        // 4. Spezza in Maniera Equilibrata
+        List<string> chunks = SplitTextEqually(textValue, numberOfChunks, breakPoints);
     }
+
+    private List<int> FindBreakPoints(string text)
+    {
+        List<int> breakPoints = new List<int>();
+        // Aggiungi indice 0 come punto di inizio
+        breakPoints.Add(0);
+
+        // Trova tutti i nuovi paragrafi o altri indicatori di spezzatura
+        for (int i = 0; i < text.Length; i++)
+        {
+            // Esempio: Usa il cambio di paragrafo come punto di spezzatura
+            if (text[i] == '\n' && i < text.Length - 1 && text[i + 1] == '\n')
+            {
+                breakPoints.Add(i);
+            }
+            // Puoi aggiungere altre condizioni per titoli di capitoli, ecc.
+        }
+        // Aggiungi la fine del testo come ultimo punto di spezzatura
+        breakPoints.Add(text.Length);
+        return breakPoints;
+    }
+
+    private List<string> SplitTextEqually(string text, int numberOfChunks, List<int> breakPoints)
+    {
+        chunks = new List<string>();
+        int approximateChunkSize = text.Length / numberOfChunks;
+
+        int startIndex = 0;
+        for (int i = 0; i < numberOfChunks; i++)
+        {
+            int endIndex = startIndex + approximateChunkSize;
+
+            // Trova il punto di spezzatura più vicino
+            while (!breakPoints.Contains(endIndex) && endIndex < text.Length)
+            {
+                endIndex++;
+            }
+
+            chunks.Add(text.Substring(startIndex, endIndex - startIndex));
+            startIndex = endIndex;
+        }
+
+        return chunks;
+    }
+
 
     private class FormData
     {
         public string Text { get; set; }
-        public IBrowserFile File { get; set; }
-        public string Prompt { get; set; }
+        // public IBrowserFile File { get; set; }
+        public string Prompt { get; set; } = "Act like a document/text loader until you load and remember content of the next text/s or document/s.\r\nThere might be multiple files, each file is marked by name in the format ### DOCUMENT NAME.\r\nI will send you them by chunks. Each chunk start will be noted as [START CHUNK x/TOTAL],\r\nand end of this chunk will be noted as [END CHUNK x/TOTAL],\r\nwhere x is number of current chunk and TOTAL is number of all chunks I will send you.\r\nI will send you multiple messages with chunks, for each message just reply OK: [CHUNK x/TOTAL], don't reply anything else, don't explain the text!\r\nLet's begin:\r\n\r\n";
         public int ChunkSize { get; set; } = 15000; 
     }
 
