@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using OpenAI_API.Models
 
 <PageTitle>ChatGPT Splitter Blazor</PageTitle>
 
@@ -13,9 +14,9 @@
             <hr class="my-3">
 
             <EditForm Model="formData" OnValidSubmit="HandleValidSubmit">
-               @*  <div class="form-group">
-                    <label for="file">Upload file(s)</label>
-                    <InputFile id="file" class="form-control-file" @bind-Value="formData.File" multiple />
+                @*  <div class="form-group">
+                <label for="file">Upload file(s)</label>
+                <InputFile id="file" class="form-control-file" @bind-Value="formData.File" multiple />
                 </div> *@
 
                 <div class="form-group">
@@ -35,6 +36,9 @@
 
                 </div>
 
+                <div class="form-group">
+                    <InputCheckbox @bind-Value="formData.UseGpt" /> Use GPT for processing
+                </div>
 
 
                 <div class="form-group mt-3">
@@ -45,14 +49,18 @@
     </div>
 
     <hr class="my-3">
-    
-    
+
     @foreach (var chunk in chunks)
     {
         <div class="col-sm-8 offset-sm-2">
-            <h2>@(chunks.IndexOf(chunk)+1)/@chunks.Count</h2>
+            <h2>@(chunks.IndexOf(chunk) + 1)/@chunks.Count</h2>
             <textarea id="@($"chunk-{chunks.IndexOf(chunk)}")" class="form-control my-3" rows="10" readonly="">@chunk</textarea>
             <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{chunks.IndexOf(chunk)}")">Copy</button>
+
+            <div class="mt-3">
+                <strong>Risposta:</strong>
+                <p>@responses[chunks.IndexOf(chunk)]</p>
+            </div>
         </div>
     }
 
@@ -61,6 +69,8 @@
 @code {
     private FormData formData = new FormData();
     List<string> chunks = new List<string>();
+    private ChatGptClient chatGptClient = new ChatGptClient();
+    List<string> responses = new List<string>();
 
     private static void ReloadPage()
     {
@@ -69,7 +79,7 @@
         //NavManager.NavigateTo("/splitter", forceLoad: true);
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         var textValue = formData.Text;
         var chunkSizeValue = formData.ChunkSize;
@@ -77,7 +87,7 @@
         // 1. Conteggio dei Token
         //https://www.nuget.org/packages/Tiktoken/1.1.1#show-readme-container
         var encoding = Tiktoken.Encoding.ForModel("gpt-4");
-        var numberOfTokens = encoding.CountTokens(textValue); 
+        var numberOfTokens = encoding.CountTokens(textValue);
 
         // 2. Determina il Numero di Chunk
         int numberOfChunks = (int)Math.Ceiling((double)numberOfTokens / chunkSizeValue);
@@ -87,9 +97,19 @@
 
         // 4. Spezza in Maniera Equilibrata
         List<string> chunks = SplitTextEqually(textValue, numberOfChunks, breakPoints);
+
+        // 5. Chiamata OpenAPI per ogni chunk
+        responses.Clear(); // Azzera le risposte precedenti
+        if (formData.UseGpt)
+        {
+            foreach (var chunk in chunks)
+            {
+                await CallOpenApiForChunk(chunk);
+            }
+        }
     }
 
-    private List<int> FindBreakPoints(string text)
+    private static List<int> FindBreakPoints(string text)
     {
         List<int> breakPoints = new List<int>();
         // Aggiungi indice 0 come punto di inizio
@@ -133,13 +153,19 @@
         return chunks;
     }
 
-
+    private async Task CallOpenApiForChunk(string chunk)
+    {
+        var response = await chatGptClient.GenerateTextAsync(chunk, formData.Prompt, Model.GPT4);
+        responses.Add(response);
+    }
+    
     private class FormData
     {
         public string Text { get; set; }
         // public IBrowserFile File { get; set; }
         public string Prompt { get; set; } = "Act like a document/text loader until you load and remember content of the next text/s or document/s.\r\nThere might be multiple files, each file is marked by name in the format ### DOCUMENT NAME.\r\nI will send you them by chunks. Each chunk start will be noted as [START CHUNK x/TOTAL],\r\nand end of this chunk will be noted as [END CHUNK x/TOTAL],\r\nwhere x is number of current chunk and TOTAL is number of all chunks I will send you.\r\nI will send you multiple messages with chunks, for each message just reply OK: [CHUNK x/TOTAL], don't reply anything else, don't explain the text!\r\nLet's begin:\r\n\r\n";
-        public int ChunkSize { get; set; } = 15000; 
+        public int ChunkSize { get; set; } = 15000;
+        public bool UseGpt { get; set; } = false;
     }
 
 }
