@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components
+@using PropertyChanged
 @inject ChatGptClient ChatGptClient
 
 
@@ -45,7 +46,7 @@
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <label>Token Count:</label>
-                            <span>@tokenCount</span>
+                            <span>@TokenCount</span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
@@ -56,7 +57,7 @@
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <label>Number of Chunks:</label>
-                            <InputNumber class="form-control" @bind-Value="numberOfChunks"
+                            <InputNumber class="form-control" @bind-Value="NumberOfChunks"
                                  style="width: 70%;" />
                         </div>
                     </div>
@@ -65,9 +66,6 @@
                 <div class="form-group mt-4">
                     <InputCheckbox @bind-Value="formData.UseGpt" /> Use GPT for processing
                 </div>
-
-
-
 
                 <div class="form-group mt-3">
                     <button type="submit" class="btn btn-primary">Process</button>
@@ -83,7 +81,7 @@
         var chunk = chunks[chunkIndex];
         <div class="col-12">
             <h2>@(chunkIndex + 1)/@chunks.Count</h2>
-            <textarea id="@($"chunk-{chunkIndex}")" class="form-control my-3" rows="10" readonly="">@chunk</textarea>
+            <textarea id="@($"chunk-{chunkIndex}")" class="form-control my-3" rows="10" readonly="false">@chunk</textarea>
             <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{chunkIndex}")">Copy</button>
 
             <div class="mt-3">
@@ -104,35 +102,38 @@
 </div>
 
 @code {
-    private bool isLoading = false;
-    private FormDataViewModel formData;
-    List<string> chunks = new();
-    // private readonly ChatGptClient chatGptClient = new ChatGptClient();
-    readonly List<string> responses = new();
-    int tokenCount = 0;
-
-    private int _numberOfChunks;
-    public int numberOfChunks
-    {
-        get => _numberOfChunks;
-        set 
-        {
-            if (_numberOfChunks != value)
-            {
-                _numberOfChunks = value;
-                UpdateChunkSize();
-            }
-        }
-    }
-
-
     protected override void OnInitialized()
     {
         formData = new FormDataViewModel(this);
-        numberOfChunks = 1;
+        NumberOfChunks = 1;
+    }
+    
+    private bool isLoading;
+    private FormDataViewModel formData; 
+    List<string> chunks = new();
+    // private readonly ChatGptClient chatGptClient = new ChatGptClient();
+    readonly List<string> responses = new();
 
+    public int TokenCount { get; set; }
+
+    public int NumberOfChunks { get; set; }
+
+
+    public void OnTextChanged()
+    {
+        using var scope = new LoadingStateScope(this);
+        UpdateTextMetrics();
     }
 
+    public void OnChunkSizeChanged()
+    {
+        UpdateChunkSizeMetrics();
+    }
+
+    private void OnNumberOfChunksChanged()
+    {
+        UpdateChunkSize();        
+    }
 
     private static void ReloadPage()
     {
@@ -140,33 +141,33 @@
         //NavManager.NavigateTo("/splitter", forceLoad: true);
     }
 
-    private void SetLoadingState(bool state)
-    {
-        isLoading = state;
-        StateHasChanged();
-    }
-
-
     private void UpdateTextMetrics()
     {
-        // Comportamento 1: Ricalcolo in base al cambio di tokenCount
-        tokenCount = TextProcessingService.CalculateTokenCount(formData.Text);
+        if (formData == null)
+            return;
 
-        numberOfChunks = TextProcessingService.CalculateNumberOfChunks(tokenCount, formData.ChunkSize);
+        TokenCount = TextProcessingService.CalculateTokenCount(formData.Text);
+        NumberOfChunks = TextProcessingService.CalculateNumberOfChunks(TokenCount, formData.ChunkSize);
     }
 
     private void UpdateChunkSizeMetrics()
     {
+        if (formData == null)
+            return;
+
         // Comportamento 2: Ricalcolo in base al cambio di chunkSize
-        numberOfChunks = TextProcessingService.CalculateNumberOfChunks(tokenCount, formData.ChunkSize);
+        NumberOfChunks = TextProcessingService.CalculateNumberOfChunks(TokenCount, formData.ChunkSize);
     }
 
     private void UpdateChunkSize()
     {
+        if (formData == null)
+            return;
+
         // Comportamento 3: Ricalcolo in base al cambio di numberOfChunks
-        if (numberOfChunks > 0)
+        if (NumberOfChunks > 0)
         {
-            formData.ChunkSize = (int)Math.Ceiling((double)tokenCount / numberOfChunks);
+            formData.ChunkSize = (int)Math.Ceiling((double)TokenCount / NumberOfChunks);
         }
     }
 
@@ -181,13 +182,13 @@
         var numberOfTokens = encoding.CountTokens(textValue);
 
         // 2. Determina il Numero di Chunk
-        numberOfChunks = (int)Math.Ceiling((double)numberOfTokens / chunkSizeValue);
+        NumberOfChunks = (int)Math.Ceiling((double)numberOfTokens / chunkSizeValue);
 
         // 3. Trova Punti di Spezzatura Possibili
         List<int> breakPoints = TextProcessingService.FindBreakPoints(textValue);
 
         // 4. Spezza in Maniera Equilibrata
-        chunks = TextProcessingService.SplitTextEqually(textValue, numberOfChunks, breakPoints);
+        chunks = TextProcessingService.SplitTextEqually(textValue, NumberOfChunks, breakPoints);
 
         // 5. Chiamata OpenAPI per ogni chunk
         responses.Clear(); // Azzera le risposte precedenti
@@ -205,50 +206,54 @@
         var response = await ChatGptClient.GenerateTextWithForgeAsync(chunk, formData.Prompt);
         responses.Add(response);
     }
-
-    public class FormDataViewModel
+    
+    [AddINotifyPropertyChangedInterface]
+    public class FormDataViewModel 
     {
         private readonly ChatGPTSplitter _parent;
 
         public FormDataViewModel(ChatGPTSplitter parent)
         {
             _parent = parent;
-            _text = string.Empty;
-            _chunkSize = 15000;
+            Text = string.Empty;
+            ChunkSize = 15000;
         }
 
-        private string _text;
-        public string Text
+        public string Text { get; set; }
+        public string Prompt { get; set; } = "Act like a document/text loader until you load and remember content of the next text/s or document/s.\r\nThere might be multiple files, each file is marked by name in the format ### DOCUMENT NAME.\r\nI will send you them by chunks. Each chunk start will be noted as [START CHUNK x/TOTAL],\r\nand end of this chunk will be noted as [END CHUNK x/TOTAL],\r\nwhere x is number of current chunk and TOTAL is number of all chunks I will send you.\r\nI will send you multiple messages with chunks, for each message just reply OK: [CHUNK x/TOTAL], don't reply anything else, don't explain the text!\r\nLet's begin:";
+        public int ChunkSize { get; set; }
+        public bool UseGpt { get; set; }
+
+        public void OnTextChanged()
         {
-            get => _text;
-            set
-            {
-                if (_text != value)
-                {
-                    _text = value;
-                    _parent.UpdateTextMetrics();
-                }
-            }
+            _parent.UpdateTextMetrics();
         }
 
-        public string Prompt { get; set; } = "Act like a document/text loader until you load and remember content of the next text/s or document/s.\r\nThere might be multiple files, each file is marked by name in the format ### DOCUMENT NAME.\r\nI will send you them by chunks. Each chunk start will be noted as [START CHUNK x/TOTAL],\r\nand end of this chunk will be noted as [END CHUNK x/TOTAL],\r\nwhere x is number of current chunk and TOTAL is number of all chunks I will send you.\r\nI will send you multiple messages with chunks, for each message just reply OK: [CHUNK x/TOTAL], don't reply anything else, don't explain the text!\r\nLet's begin:\r\n\r\n";
-
-        private int _chunkSize;
-        public int ChunkSize 
+        public void OnChunkSizeChanged()
         {
-            get => _chunkSize;
-            set 
-            {
-                if (_chunkSize != value) 
-                {
-                    _chunkSize = value;
-                    _parent.UpdateChunkSizeMetrics();
-                }
-            }
+                _parent.UpdateChunkSizeMetrics();
         }
-
-
-        public bool UseGpt { get; set; } = false;
     }
 
+    public class LoadingStateScope : IDisposable
+    {
+        private readonly ChatGPTSplitter _component;
+
+        public LoadingStateScope(ChatGPTSplitter component)
+        {
+            _component = component;
+            _component.isLoading = true;
+            _component.StateHasChanged();
+        }
+
+        public void Dispose()
+        {
+            _component.isLoading = false;
+            _component.StateHasChanged();
+        }
+    }
+
+    
+
 }
+

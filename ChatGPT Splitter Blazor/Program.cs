@@ -9,16 +9,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Configuration for Serilog
-//var environmentName = builder.HostEnvironment.Environment;
-//var configuration = new ConfigurationBuilder()
-//    .AddJsonFile("appsettings.json")
-//    //.AddJsonFile($"appsettings.{environmentName}.json", true)
-//    .Build();
-
 Log.Logger = new LoggerConfiguration()
-    //.ReadFrom.Configuration(configuration)
-    //.WriteTo.BrowserConsole()  // Log to browser console
     .CreateLogger();
 
 try
@@ -33,7 +24,6 @@ try
         options.AuthenticationInfo = new AuthenticationInfo(settings.OpenAI.ApiKey);
     });
     builder.Services.AddScoped<ChatGptClient>();
-
 
     await builder.Build().RunAsync();
 }
