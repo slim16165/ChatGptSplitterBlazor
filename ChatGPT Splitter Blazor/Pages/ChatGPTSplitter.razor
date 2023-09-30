@@ -5,7 +5,15 @@
 
 <PageTitle>ChatGPT Splitter Blazor</PageTitle>
 
-<div class="container my-5" style="padding-bottom: 8rem;">
+@if (isLoading)
+{
+    <div class="text-center mt-4">
+        <p>Loading...</p>
+        <!-- Optional: Add a spinner or any other visual loading indicator here -->
+    </div>
+}
+
+<div class="container my-0" style="padding-bottom: 8rem;">
     <div class="row">
         <div class="col-12">
             <h1><a href="" @onclick="ReloadPage">ChatGPT Splitter</a></h1>
@@ -96,7 +104,8 @@
 </div>
 
 @code {
-    private FormData formData;
+    private bool isLoading = false;
+    private FormDataViewModel formData;
     List<string> chunks = new();
     // private readonly ChatGptClient chatGptClient = new ChatGptClient();
     readonly List<string> responses = new();
@@ -119,7 +128,7 @@
 
     protected override void OnInitialized()
     {
-        formData = new FormData(this);
+        formData = new FormDataViewModel(this);
         numberOfChunks = 1;
 
     }
@@ -130,6 +139,13 @@
         // Ricarica la pagina
         //NavManager.NavigateTo("/splitter", forceLoad: true);
     }
+
+    private void SetLoadingState(bool state)
+    {
+        isLoading = state;
+        StateHasChanged();
+    }
+
 
     private void UpdateTextMetrics()
     {
@@ -190,11 +206,11 @@
         responses.Add(response);
     }
 
-    private class FormData
+    public class FormDataViewModel
     {
         private readonly ChatGPTSplitter _parent;
 
-        public FormData(ChatGPTSplitter parent)
+        public FormDataViewModel(ChatGPTSplitter parent)
         {
             _parent = parent;
             _text = string.Empty;
