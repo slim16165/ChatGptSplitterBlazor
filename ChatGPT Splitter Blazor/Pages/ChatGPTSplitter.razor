@@ -78,26 +78,8 @@
 
     @foreach (var chunkIndex in Enumerable.Range(0, chunks.Count))
     {
-        var chunk = chunks[chunkIndex];
-        <div class="col-12">
-            <h2>@(chunkIndex + 1)/@chunks.Count</h2>
-            <textarea id="@($"chunk-{chunkIndex}")" class="form-control my-3" rows="10" readonly="false">@chunk</textarea>
-            <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{chunkIndex}")">Copy</button>
-
-            <div class="mt-3">
-                <strong>Risposta:</strong>
-                @if (responses.Count > chunkIndex)
-                {
-                    <p>@responses[chunkIndex]</p>
-                }
-                else
-                {
-                    <p>Response not available.</p>
-                }
-            </div>
-        </div>
+        <ChunkDisplay Chunk="@chunks[chunkIndex]" Response="@(responses.Count > chunkIndex ? responses[chunkIndex] : null)" Index="@chunkIndex" TotalChunks="@chunks.Count" />
     }
-
 
 </div>
 
@@ -203,6 +185,7 @@
 
     private async Task CallOpenApiForChunk(string chunk)
     {
+        using var scope = new LoadingStateScope(this);
         var response = await ChatGptClient.GenerateTextWithForgeAsync(chunk, formData.Prompt);
         responses.Add(response);
     }
@@ -252,8 +235,5 @@
             _component.StateHasChanged();
         }
     }
-
-    
-
 }
 

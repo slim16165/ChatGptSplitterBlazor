@@ -1,0 +1,45 @@
+﻿@using Microsoft.AspNetCore.Components
+@code {
+    [Parameter]
+    public string Chunk { get; set; }
+
+    [Parameter]
+    public string Response { get; set; }
+
+    [Parameter]
+    public int Index { get; set; }
+
+    [Parameter]
+    public int TotalChunks { get; set; }
+}
+
+<!-- Inizio di un singolo blocco "chunk" -->
+<div class="col-12">
+    <!-- Titolo con l'indicizzazione dei chunks -->
+    <h2>@(Index + 1)/@TotalChunks</h2>
+
+    <!-- Textarea per mostrare il contenuto del chunk -->
+    <textarea id="@($"chunk-{Index}")" class="form-control my-3" rows="10" readonly="false">@Chunk</textarea>
+
+    <!-- Pulsante "Copia" per il chunk -->
+    <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{Index}")">Copy</button>
+
+    <!-- Sezione per mostrare la risposta relativa al chunk -->
+    <div class="mt-3">
+        <strong>Risposta:</strong>
+
+        @if (!string.IsNullOrEmpty(Response))
+        {
+            <!-- Textarea per mostrare la risposta relativa al chunk -->
+            <textarea id="@($"response-{Index}")" class="form-control my-3" rows="10" readonly="false">@Response</textarea>
+
+            <!-- Pulsante "Copia" per la risposta -->
+            <button class="btn btn-success copy-btn" data-clipboard-target="@($"#response-{Index}")">Copy</button>
+        }
+        else
+        {
+            <p>Response not available.</p>
+        }
+    </div>
+</div>
+<!-- Fine di un singolo blocco "chunk" -->
