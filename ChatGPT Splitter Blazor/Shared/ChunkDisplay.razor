@@ -19,7 +19,7 @@
     <h2>@(Index + 1)/@TotalChunks</h2>
 
     <!-- Textarea per mostrare il contenuto del chunk -->
-    <textarea id="@($"chunk-{Index}")" class="form-control my-3" rows="10" readonly="false">@Chunk</textarea>
+    <textarea id="@($"chunk-{Index}")" class="form-control my-3" rows="10">@Chunk</textarea>
 
     <!-- Pulsante "Copia" per il chunk -->
     <button class="btn btn-success copy-btn" data-clipboard-target="@($"#chunk-{Index}")">Copy</button>
@@ -31,10 +31,10 @@
         @if (!string.IsNullOrEmpty(Response))
         {
             <!-- Textarea per mostrare la risposta relativa al chunk -->
-            <textarea id="@($"response-{Index}")" class="form-control my-3" rows="10" readonly="false">@Response</textarea>
+            <textarea id="@($"response-{Index}")" class="form-control my-3" rows="10">@Response</textarea>
 
             <!-- Pulsante "Copia" per la risposta -->
-            <button class="btn btn-success copy-btn" data-clipboard-target="@($"#response-{Index}")">Copy</button>
+            <button class="btn btn-info copy-btn" data-clipboard-target="@($"#response-{Index}")">Copy</button>
         }
         else
         {

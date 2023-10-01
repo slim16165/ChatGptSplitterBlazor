@@ -70,10 +70,10 @@ public class ChatGptClient
         return response;
     }
 
-    public async Task<string> GenerateTextWithForgeAsync(string userInput, string istruzioni)
+    public async Task<string> GenerateTextWithForgeAsync(string userInput, string istruzioni, Model model)
     {
         // Crea la richiesta iniziale
-        ChatCompletionRequest request = new ChatCompletionRequest(ChatMessage.CreateFromSystem(istruzioni));
+        ChatCompletionRequest request = new ChatCompletionRequest(ChatMessage.CreateFromSystem(istruzioni), model);
         request.Messages.Add(ChatMessage.CreateFromUser(userInput));
 
         // Non sono sicuro di come tu stia gestendo 'Model' nel tuo codice attuale, 
