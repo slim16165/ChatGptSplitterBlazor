@@ -54,10 +54,37 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
+
                             <label for="chunk_size" class="pr-2">Chunk size:</label>
-                            <InputNumber id="chunk_size" class="form-control" @bind-Value="formData.ChunkSize"
-                                         style="width: 70%;"/>
+  
+                            <InputNumber id="chunk_size" class="form-control" @bind-Value="formData.ChunkSize" 
+                                         style="width: 70%;" />
+  
+                            <button class="btn btn-info ml-2" @onclick="ShowTooltip">
+                                <span class="oi oi-info" />
+                            </button>
+  
+                            @if (showTooltip)
+                            {
+                                <div class="tooltip">
+                                    The OpenAI prompt's maximum capacity is roughly 8192 tokens, equivalent to around 24000 characters for both input and output together.
+
+                                    Dedicating about 2000 characters for the correction prompt leaves approximately 22000 characters available for the input. Ideally, this should be divided evenly between input and output, using 50% for each.
+
+                                    Therefore, the suggested character range for the input field below is between 1,000 and 10,000. However, targeting 3,000 characters is advisable to avoid potential problems.
+                                </div>
+                            }
+  
                         </div>
+
+                        @code {
+                            bool showTooltip = false;
+  
+                            void ShowTooltip() 
+                            {
+                                showTooltip = !showTooltip;
+                            }
+                        }
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <label>Number of Chunks:</label>
