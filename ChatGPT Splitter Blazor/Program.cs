@@ -4,6 +4,7 @@ using Forge.OpenAI;
 using Forge.OpenAI.Authentication;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using ChatGPT_Splitter_Blazor_New.Config;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");

@@ -1,55 +1,36 @@
-﻿using ChatGPT_Splitter_Blazor_New.Config;
-using Newtonsoft.Json;
-using OpenAI_API;
+﻿using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
-using System.Reflection;
 using Forge.OpenAI.Models.ChatCompletions;
 using Forge.OpenAI.Models.Common;
 using ChatMessage = Forge.OpenAI.Models.ChatCompletions.ChatMessage;
 using Forge.OpenAI.Interfaces.Services;
+using ChatGPT_Splitter_Blazor_New.Config;
 
 namespace ChatGPT_Splitter_Blazor_New;
 
-public class ConfigurationLoader
-{
-    public static AppSettings LoadEmbeddedAppSettings()
-    {
-        const string resourceName = "ChatGPT_Splitter_Blazor_New.appsettings.json";
-        string content = ReadEmbeddedResourceContent(resourceName);
-        return JsonConvert.DeserializeObject<AppSettings>(content);
-    }
-
-    private static string ReadEmbeddedResourceContent(string resourceName)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-
-        using Stream stream = assembly.GetManifestResourceStream(resourceName);
-        using StreamReader reader = new StreamReader(stream);
-
-        return reader.ReadToEnd();
-    }
-}
-
 public class ChatGptClient
 {
-    private readonly OpenAIAPI _api;
+    private OpenAIAPI _api;
     private readonly IOpenAIService _openAiService;
-    private readonly string _apiKey;
+    private string _apiKey;
 
     public ChatGptClient(IOpenAIService openAiService)
     {
         // Due to the nature of Blazor WebAssembly (similar to JS), traditional server-side configuration files are not accessible.
         // Blazor WebAssembly, in fact, run entirely within the client's browser. As a result, I've embedded the configuration as a 
         // resource within the assembly to allow for its secure retrieval and usage without exposing sensitive details on public repositories (github).
-
-        //var config = AppSettings.Load("appsettings.json");
-        var settings = ConfigurationLoader.LoadEmbeddedAppSettings();
-        _apiKey = settings.OpenAI.ApiKey;
-        
-        _api = new OpenAIAPI(_apiKey);
-
         _openAiService = openAiService;
+
+        // Carica il token API da una configurazione statica se disponibile
+        var settings = ConfigurationLoader.LoadEmbeddedAppSettings();
+        _apiKey = settings?.OpenAI.ApiKey;
+
+        // Inizializza il client OpenAI se il token è disponibile
+        if (!string.IsNullOrEmpty(_apiKey))
+        {
+            _api = new OpenAIAPI(_apiKey);
+        }
     }
 
     public async Task<string> GenerateTextAsync(string userInput, string istruzioni, Model model)
@@ -94,5 +75,11 @@ public class ChatGptClient
         }
     }
 
+    public void UpdateToken(string apiToken)
+    {
+        if (string.IsNullOrEmpty(apiToken) || apiToken == _apiKey) return;
 
+        _apiKey = apiToken;
+        _api = new OpenAIAPI(_apiKey);
+    }
 }
