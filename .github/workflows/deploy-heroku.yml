@@ -1,0 +1,30 @@
+name: Deploy to Heroku
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'  # o la tua versione di .NET
+
+    - name: Build and Publish
+      run: dotnet publish "ChatGPT Splitter Blazor/ChatGPT Splitter Blazor New.csproj" -c Release -o ./publish
+
+    - name: Deploy to Heroku
+      uses: akhileshns/heroku-deploy@v3.12.12
+      with:
+        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+        heroku_app_name: "chatgptsplitter"  # sostituisci con il nome della tua app su Heroku
+        heroku_email: "hyperreview@gmail.com"
+        usedocker: true
+        appdir: "publish"
