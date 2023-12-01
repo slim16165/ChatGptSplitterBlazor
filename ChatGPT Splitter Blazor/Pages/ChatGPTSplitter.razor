@@ -127,10 +127,6 @@
     </div>
 
     <hr class="my-3">
-    <script>
-        // ReSharper disable once PossiblyUnassignedPropertyCRLF
-        new ClipboardJS('.copy-btn');
-    </script>
     @foreach (var chunkIndex in Enumerable.Range(0, chunks.Count))
     {
         <ChunkDisplay Chunk="@chunks[chunkIndex]" Response="@(responses.Count > chunkIndex ? responses[chunkIndex] : null)" Index="@chunkIndex" TotalChunks="@chunks.Count" />
