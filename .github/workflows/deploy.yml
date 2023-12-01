@@ -26,4 +26,4 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./ChatGPT Splitter Blazor/publish/wwwroot  # Assicurati che questo percorso sia corretto
+          publish_dir: ./publish/wwwroot  # Assicurati che questo percorso sia corretto
