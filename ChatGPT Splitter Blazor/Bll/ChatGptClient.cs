@@ -7,7 +7,7 @@ using ChatMessage = Forge.OpenAI.Models.ChatCompletions.ChatMessage;
 using Forge.OpenAI.Interfaces.Services;
 using ChatGPT_Splitter_Blazor_New.Config;
 
-namespace ChatGPT_Splitter_Blazor_New;
+namespace ChatGPT_Splitter_Blazor_New.Bll;
 
 public class ChatGptClient
 {
@@ -36,7 +36,7 @@ public class ChatGptClient
     public async Task<string> GenerateTextAsync(string userInput, string istruzioni, Model model)
     {
         //https://github.com/OkGoDoIt/OpenAI-API-dotnet#chat-conversations
-        ChatRequest config = new ChatRequest(){Model = model};
+        ChatRequest config = new ChatRequest() { Model = model };
         var chat = _api.Chat.CreateConversation(config);
 
         /// give instruction as System
@@ -50,6 +50,8 @@ public class ChatGptClient
 
         return response;
     }
+
+
 
     public async Task<string> GenerateTextWithForgeAsync(string userInput, string istruzioni, Model model)
     {

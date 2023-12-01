@@ -1,4 +1,4 @@
-﻿namespace ChatGPT_Splitter_Blazor_New;
+﻿namespace ChatGPT_Splitter_Blazor_New.Bll;
 
 public static class TextProcessingService
 {
