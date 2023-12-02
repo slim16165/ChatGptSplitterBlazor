@@ -1,16 +1,16 @@
 ﻿using System.Diagnostics;
-using OpenAI_API;
 using Forge.OpenAI.Models.ChatCompletions;
 using Forge.OpenAI.Models.Common;
 using Forge.OpenAI.Interfaces.Services;
 using ChatGPT_Splitter_Blazor_New.Config;
+using Forge.OpenAI.Authentication;
 using Forge.OpenAI.Models.Models;
 
 namespace ChatGPT_Splitter_Blazor_New.Bll;
 
 public class ChatGptClient
 {
-    private OpenAIAPI _api;
+    private AuthenticationInfo _api;
     private readonly IOpenAIService _openAiService;
     private string _apiKey;
 
@@ -28,7 +28,7 @@ public class ChatGptClient
         // Inizializza il client OpenAI se il token è disponibile
         if (!string.IsNullOrEmpty(_apiKey))
         {
-            _api = new OpenAIAPI(_apiKey);
+            _api = new AuthenticationInfo(_apiKey);
         }
     }
 
@@ -79,6 +79,6 @@ public class ChatGptClient
         if (string.IsNullOrEmpty(apiToken) || apiToken == _apiKey) return;
 
         _apiKey = apiToken;
-        _api = new OpenAIAPI(_apiKey);
+        _api = new AuthenticationInfo(_apiKey);
     }
 }
