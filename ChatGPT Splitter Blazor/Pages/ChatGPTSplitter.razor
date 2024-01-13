@@ -2,9 +2,9 @@
 @using ChatGPT_Splitter_Blazor_New.Bll
 @using OpenAI_API.Models
 @using PropertyChanged
-@    using Microsoft.AspNetCore.Components
-@    using OpenAI_API.Models
-@    using PropertyChanged
+@using Microsoft.AspNetCore.Components
+@using OpenAI_API.Models
+@using PropertyChanged
 @inject ChatGptClient ChatGptClient
 @inject IJSRuntime JSRuntime
 
@@ -257,7 +257,7 @@
     private async Task CallOpenApiForChunk(string chunk)
     {
         using var scope = new LoadingStateScope(this);
-        var response = await ChatGptClient.GenerateTextWithForgeAsync(chunk, formData.Prompt, (Model)SelectedModel);
+        var response = await ChatGptClient.GenerateTextWithForgeAsync(chunk, formData.Prompt, SelectedModel);
         responses.Add(response);
     }
 
