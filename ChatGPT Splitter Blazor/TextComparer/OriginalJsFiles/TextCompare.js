@@ -17,7 +17,7 @@
 		function App(namespace) {
 			// App's default settings (comparison & input reading options)
 			var defaults = {
-				'minMatchLength': { id: '#min-match-length', type: 'inputText', value: 4 },
+				'minMatchLength': { id: '#min-match-length', type: 'MyInputText', value: 4 },
 				'ignoreFootnotes': { id: '#ignore-footnotes', type: 'checkbox', value: false },
 				'ignoreLetterCase': { id: '#ignore-letter-case', type: 'checkbox', value: true },
 				'ignoreNumbers': { id: '#ignore-numbers', type: 'checkbox', value: false },
@@ -39,7 +39,7 @@
 
 			var $ = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 			var FileInputReader = require('../inputReader/fileInputReader.js');
-			var InputText = require('./inputText.js');
+			var MyInputText = require('./MyInputText.js');
 			var SimTexter = require('../simtexter/simtexter.js');
 			var TextInputReader = require('../inputReader/textInputReader.js');
 
@@ -57,7 +57,7 @@
 				this.view = view;
 				this.maxCharactersPerPage = 1900;
 				this.maxNumberOfPages = 500;
-				this.inputTexts = [new InputText(), new InputText()];
+				this.MyInputTexts = [new MyInputText(), new MyInputText()];
 
 				this._bindEvents();
 				this._updateUI(this.storage.data);
@@ -67,16 +67,16 @@
 			 * Displays a warning message if input is too long (> maxNumberOfPages).
 			 * @function
 			 * @private
-			 * @param {Number} idx - the index of the {InputText} object in inputTexts[]
+			 * @param {Number} idx - the index of the {MyInputText} object in MyInputTexts[]
 			 */
 			Controller.prototype._alertLongInput = function (idx) {
 				var self = this;
 
-				// Compute approximate number of pages for inputText
-				var nrOfPages = self.inputTexts[idx].getNumberOfPages(self.maxCharactersPerPage);
+				// Compute approximate number of pages for MyInputText
+				var nrOfPages = self.MyInputTexts[idx].getNumberOfPages(self.maxCharactersPerPage);
 				// If greater than maximum number of pages, display warning message
 				if (nrOfPages > self.maxNumberOfPages) {
-					var inputMode = self.inputTexts[idx].mode;
+					var inputMode = self.MyInputTexts[idx].mode;
 					var message = [
 						inputMode, ' ', (idx + 1), ' is too long. To prevent visualization issues, please consider truncating this ', inputMode.toLowerCase(), '.'
 					].join('');
@@ -109,7 +109,7 @@
 					self._readFile(file, idx, loadingElem, tabPaneId);
 				});
 
-				self.view.bind('inputText', function (text, idx, tabPaneId) {
+				self.view.bind('MyInputText', function (text, idx, tabPaneId) {
 					self._readText(text, idx, tabPaneId);
 				});
 
@@ -122,9 +122,9 @@
 				self.view.bind('selectTab');
 
 				self.view.bind('selectHTMLOption', function (idx, newValue, text) {
-					self.inputTexts[idx].setHTMLOption(newValue);
+					self.MyInputTexts[idx].setHTMLOption(newValue);
 					if (text) {
-						self._readText(text, idx, self.inputTexts[idx].tabPaneId);
+						self._readText(text, idx, self.MyInputTexts[idx].tabPaneId);
 					}
 				});
 
@@ -151,7 +151,7 @@
 					var simtexter = new SimTexter(self.storage);
 
 					setTimeout(function () {
-						simtexter.compare(self.inputTexts).then(
+						simtexter.compare(self.MyInputTexts).then(
 							// On success, update information nodes and display similarities
 							function (nodes) {
 								self.view.results = {
@@ -199,21 +199,21 @@
 				var self = this,
 					isValid = true,
 					activeTabPaneIds = self.view.getActiveTabPaneIds(),
-					iTextsLength = self.inputTexts.length;
+					iTextsLength = self.MyInputTexts.length;
 
 				for (var i = 0; i < iTextsLength; i++) {
-					var inputText = self.inputTexts[i];
+					var MyInputText = self.MyInputTexts[i];
 					var activeTabPaneId = activeTabPaneIds[i];
 
-					var isInputTextValid = (inputText.text !== undefined && inputText.tabPaneId === activeTabPaneId);
+					var isMyInputTextValid = (MyInputText.text !== undefined && MyInputText.tabPaneId === activeTabPaneId);
 
-					if (!isInputTextValid) {
+					if (!isMyInputTextValid) {
 						self.view.toggleErrorStatus('show', activeTabPaneId);
 					} else {
 						self.view.toggleErrorStatus('hide', activeTabPaneId);
 					}
 
-					isValid = isValid && isInputTextValid;
+					isValid = isValid && isMyInputTextValid;
 				}
 
 				return isValid;
@@ -241,12 +241,12 @@
 
 			/**
 			 * Extracts the contents of the selected file
-			 * and updates the relevant fields of the {InputText} object.
+			 * and updates the relevant fields of the {MyInputText} object.
 			 * @function
 			 * @private
 			 * @param {FileList} file        - the file selected by the user
-			 * @param {Number}   idx         - the index of the {InputText} object 
-			 * 																 in inputTexts[] to be updated.
+			 * @param {Number}   idx         - the index of the {MyInputText} object 
+			 * 																 in MyInputTexts[] to be updated.
 			 *                                 0: input in left-side pane 
 			 *                                 1: input in right-side pane
 			 * @param {Object}   loadingElem - the node element that shows 
@@ -258,15 +258,15 @@
 					ignoreFootnotes = self.storage.getItemValueByKey('ignoreFootnotes');
 
 				var success = function (text) {
-					// Update {InputText} object
-					self.inputTexts[idx].setFileInput(file, text, tabPaneId);
+					// Update {MyInputText} object
+					self.MyInputTexts[idx].setFileInput(file, text, tabPaneId);
 					self.view.loading('done', loadingElem);
 					self.view.clearTabPaneTextInput(idx);
 					self._alertLongInput(idx);
 				};
 
 				var error = function (message) {
-					self.inputTexts[idx].reset();
+					self.MyInputTexts[idx].reset();
 					self.view.loading('error', loadingElem);
 					self.view.clearTabPaneTextInput(idx);
 
@@ -280,18 +280,18 @@
 					fileInputReader.readFileInput(loadingStarted).then(success, error);
 				} else {
 					self.view.loading('cancel', loadingElem);
-					self.inputTexts[idx].reset();
+					self.MyInputTexts[idx].reset();
 				}
 			};
 
 			/**
 			 * Extracts the contents of the typed/pasted HTML/plain text
-			 * and updates the relevant fields of the {InputText} object.
+			 * and updates the relevant fields of the {MyInputText} object.
 			 * @function
 			 * @private
 			 * @param {String} text      - the HTML/plain text provided by the user
-			 * @param {Number} idx       - the index of the {InputText} object 
-			 * 														 in inputTexts[] to be updated.
+			 * @param {Number} idx       - the index of the {MyInputText} object 
+			 * 														 in MyInputTexts[] to be updated.
 			 *                             0: input in left-side pane, 
 			 *                             1: input in right-side pane
 			 * @param {String} tabPaneId - the id of the active tab pane
@@ -300,22 +300,22 @@
 				var self = this;
 
 				var success = function (cleanedText) {
-					// Update {InputText} object
-					self.inputTexts[idx].setTextInput(cleanedText, tabPaneId);
+					// Update {MyInputText} object
+					self.MyInputTexts[idx].setTextInput(cleanedText, tabPaneId);
 					self.view.toggleCompareBtn('enable');
 					self.view.clearTabPaneFileInput(idx);
 					self._alertLongInput(idx);
 				};
 
 				var error = function (message) {
-					self.inputTexts[idx].reset();
+					self.MyInputTexts[idx].reset();
 					self.view.toggleCompareBtn('enable');
 					var delay = self._computeReadingSpeed(message);
 					self.view.showAlertMessage('error', message, delay);
 				};
 
 				if (text.length > 0 && /\S/.test(text)) {
-					if (self.inputTexts[idx].isHTML) {
+					if (self.MyInputTexts[idx].isHTML) {
 						self.view.toggleCompareBtn('disable');
 						var textInputReader = new TextInputReader();
 						textInputReader.readTextInput(text).then(success, error);
@@ -323,7 +323,7 @@
 						success(text);
 					}
 				} else {
-					self.inputTexts[idx].reset();
+					self.MyInputTexts[idx].reset();
 				}
 			};
 
@@ -358,21 +358,21 @@
 			module.exports = Controller;
 		}).call(this, typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-	}, { "../inputReader/fileInputReader.js": 9, "../inputReader/textInputReader.js": 10, "../simtexter/simtexter.js": 14, "./inputText.js": 3 }], 3: [function (require, module, exports) {
+	}, { "../inputReader/fileInputReader.js": 9, "../inputReader/textInputReader.js": 10, "../simtexter/simtexter.js": 14, "./MyInputText.js": 3 }], 3: [function (require, module, exports) {
 		/* jshint undef:true, unused:true, node:true, browser:true */
 		'use strict';
 
 		/**
-		 * Creates an instance of a {InputText},
+		 * Creates an instance of a {MyInputText},
 		 * which holds information on the user input.
 		 * @constructor
-		 * @this  {InputText}
+		 * @this  {MyInputText}
 		 * @param {String} mode      - the mode of input (i.e. "file" or "text")
 		 * @param {File}   file      - the file selected by the user
 		 * @param {String} text      - the input string
 		 * @param {String} tabPaneId - the id of the tab pane
 		 */
-		function InputText(mode, file, text, tabPaneId) {
+		function MyInputText(mode, file, text, tabPaneId) {
 			this.tabPaneId = tabPaneId;
 			this.mode = mode;
 			this.isHTML = false;
@@ -387,15 +387,15 @@
 		 * 																					per page
 		 * @returns {Number}                      - the ca. number of pages
 		 */
-		InputText.prototype.getNumberOfPages = function (maxCharactersPerPage) {
+		MyInputText.prototype.getNumberOfPages = function (maxCharactersPerPage) {
 			return (this.text.length / maxCharactersPerPage);
 		};
 
 		/**
-		 * Resets some fields of the {InputText}.
+		 * Resets some fields of the {MyInputText}.
 		 * @function
 		 */
-		InputText.prototype.reset = function () {
+		MyInputText.prototype.reset = function () {
 			this.tabPaneId = undefined;
 			this.mode = undefined;
 			this.fileName = undefined;
@@ -409,7 +409,7 @@
 		 * @param {String} text      - the file input string
 		 * @param {String} tabPaneId - the id of the tab pane
 		 */
-		InputText.prototype.setFileInput = function (file, text, tabPaneId) {
+		MyInputText.prototype.setFileInput = function (file, text, tabPaneId) {
 			this.tabPaneId = tabPaneId;
 			this.mode = 'File';
 			this.fileName = file.name;
@@ -422,18 +422,18 @@
 		 * @param {String} text      - the text input string
 		 * @param {String} tabPaneId - the id of the tab pane
 		 */
-		InputText.prototype.setTextInput = function (text, tabPaneId) {
+		MyInputText.prototype.setTextInput = function (text, tabPaneId) {
 			this.tabPaneId = tabPaneId;
 			this.mode = 'Text';
 			this.fileName = (this.isHTML) ? 'HTML text input' : 'Plain text input';
 			this.text = text;
 		};
 
-		InputText.prototype.setHTMLOption = function (newValue) {
+		MyInputText.prototype.setHTMLOption = function (newValue) {
 			this.isHTML = newValue;
 		};
 
-		module.exports = InputText;
+		module.exports = MyInputText;
 	}, {}], 4: [function (require, module, exports) {
 		/* jshint undef:true, unused:true, node:true, browser:true */
 		'use strict';
@@ -789,7 +789,7 @@
 				this.$inputPanel = $('#input-panel');
 				this.$inputPanes = $('#input-pane-1, #input-pane-2');
 				this.$inputFiles = $('#input-file-1, #input-file-2');
-				this.$inputTexts = $('#input-text-1, #input-text-2');
+				this.$MyInputTexts = $('#input-text-1, #input-text-2');
 				this.$outputPanel = $('#output-panel');
 				this.$outputTexts = $('#comparison-output-1, #comparison-output-2');
 				this.$outputTextContainers = $('#comparison-output-1 > .comparison-output-container, #comparison-output-2 > .comparison-output-container');
@@ -837,7 +837,7 @@
 								minMatchLength = (minMatchLength < 1) ? 1 : minMatchLength;
 
 								handler(id, minMatchLength);
-								self.updateUIOption(id, 'inputText', minMatchLength);
+								self.updateUIOption(id, 'MyInputText', minMatchLength);
 							}
 							)
 							.on('click', '.btn', function (e) {
@@ -854,7 +854,7 @@
 								}
 
 								handler(id, minMatchLength);
-								self.updateUIOption(id, 'inputText', minMatchLength);
+								self.updateUIOption(id, 'MyInputText', minMatchLength);
 							});
 						break;
 
@@ -908,8 +908,8 @@
 						});
 						break;
 
-					case 'inputText':
-						self.$inputTexts.on('change input', function (e) {
+					case 'MyInputText':
+						self.$MyInputTexts.on('change input', function (e) {
 							var elem = e.target;
 							var $elem = $(elem);
 							var tabPaneId = self._getId($elem.parents('.tab-pane'));
@@ -971,7 +971,7 @@
 							var id = self._getId(elem);
 							var idx = self._getIndex(id);
 							var newValue = $(elem).prop('checked');
-							var text = self.$inputTexts.eq(idx).val();
+							var text = self.$MyInputTexts.eq(idx).val();
 							handler(idx, newValue, text);
 						});
 						break;
@@ -1162,7 +1162,7 @@
 			View.prototype._resetTextInputTabPanes = function () {
 				var self = this;
 				self.$htmlOptions.prop('checked', false);
-				self.$inputTexts.val('');
+				self.$MyInputTexts.val('');
 			};
 
 			/**
@@ -2165,24 +2165,24 @@
 			 * When resolved, an array of nodes is returned,
 			 * which holds the text and the highlighted matches.
 			 * @function
-			 * @param {Array<InputText>} inputTexts - the array of {InputText} objects 
+			 * @param {Array<MyInputText>} MyInputTexts - the array of {MyInputText} objects 
 			 *                                        which hold information about the user 
 			 * 																 				input
 			 */
-			SimTexter.prototype.compare = function (inputTexts) {
+			SimTexter.prototype.compare = function (MyInputTexts) {
 				var self = this,
 					deferred = $.Deferred(),
 					forwardReferences = [],
 					similarities = [];
 
 				// Read input (i.e. cleaning, tokenization)
-				self._readInput(inputTexts, forwardReferences);
+				self._readInput(MyInputTexts, forwardReferences);
 				// Get matches
 				similarities = self._getSimilarities(0, 1, forwardReferences);
 
 				if (similarities.length) {
 					// Return input string as HTML nodes
-					deferred.resolve(self._getNodes(inputTexts, similarities));
+					deferred.resolve(self._getNodes(MyInputTexts, similarities));
 				} else {
 					deferred.reject('No similarities found.');
 				}
@@ -2292,17 +2292,17 @@
 			 * Cleans the input string according to the comparison options set.
 			 * @function
 			 * @private
-			 * @param   {String} inputText - the input string
+			 * @param   {String} MyInputText - the input string
 			 * @returns {String}           - the cleaned input string
 			 */
-			SimTexter.prototype._cleanInputText = function (inputText) {
+			SimTexter.prototype._cleanMyInputText = function (MyInputText) {
 				var self = this,
-					text = inputText;
+					text = MyInputText;
 
 				var langRegex = self._buildRegex();
 
 				if (langRegex) {
-					text = inputText.replace(langRegex, ' ');
+					text = MyInputText.replace(langRegex, ' ');
 				}
 
 				if (self.ignoreLetterCase) {
@@ -2434,26 +2434,26 @@
 			 * of each match.
 			 * @function
 			 * @private
-			 * @param   {Array} inputTexts - the array of {InputText} objects, 
+			 * @param   {Array} MyInputTexts - the array of {MyInputText} objects, 
 			 * 															 which hold information about each user input
 			 * @param   {Array} matches    - the array that holds the {MatchSegment} objects, 
 			 * 															 stored in pairs
 			 * @returns {Array}            - the array of HTML nodes, 
 			 * 															 which holds the text and the highlighted matches
 			 */
-			SimTexter.prototype._getNodes = function (inputTexts, matches) {
+			SimTexter.prototype._getNodes = function (MyInputTexts, matches) {
 				var self = this,
-					iTextsLength = inputTexts.length,
+					iTextsLength = MyInputTexts.length,
 					nodes = [];
 
 				var styledMatches = self._applyStyles(matches);
 
 				// For each input text
 				for (var i = 0; i < iTextsLength; i++) {
-					var inputText = inputTexts[i].text,
+					var MyInputText = MyInputTexts[i].text,
 						chIdx = 0,
 						chIdxLast = chIdx,
-						chEndPos = inputText.length,
+						chEndPos = MyInputText.length,
 						mIdx = 0,
 						trgIdxRef = (i == 0) ? (i + 1) : (i - 1);
 					nodes[i] = [];
@@ -2471,12 +2471,12 @@
 							var mTxtEndPos = match.getTxtEndPos(self.tokens);
 
 							// Create text node
-							var textNodeStr = inputText.slice(chIdxLast, mTxtBeginPos);
+							var textNodeStr = MyInputText.slice(chIdxLast, mTxtBeginPos);
 							var textNode = document.createTextNode(textNodeStr);
 							nodes[i].push(textNode);
 
 							// Create link node for match segment
-							var linkNodeStr = inputText.slice(mTxtBeginPos, mTxtEndPos);
+							var linkNodeStr = MyInputText.slice(mTxtBeginPos, mTxtEndPos);
 							var linkNode = match.createLinkNode(linkNodeStr, sortedMatches[mIdx][trgIdxRef]);
 							nodes[i].push(linkNode);
 
@@ -2484,7 +2484,7 @@
 							chIdx = mTxtEndPos;
 							chIdxLast = chIdx;
 						} else {
-							var lastTextNodeStr = inputText.slice(chIdxLast, chEndPos);
+							var lastTextNodeStr = MyInputText.slice(chIdxLast, chEndPos);
 							var lastTextNode = document.createTextNode(lastTextNodeStr);
 							nodes[i].push(lastTextNode);
 							chIdx = chEndPos;
@@ -2570,23 +2570,23 @@
 			 * Creates also the forward reference table.
 			 * @function
 			 * @private
-			 * @param {Array} inputTexts    - the array of {InputText} objects
+			 * @param {Array} MyInputTexts    - the array of {MyInputText} objects
 			 * 															  that hold information on the user input
 			 * @param {Array} frwReferences - the array of forward references
 			 */
-			SimTexter.prototype._readInput = function (inputTexts, frwReferences) {
+			SimTexter.prototype._readInput = function (MyInputTexts, frwReferences) {
 				var self = this,
 					mtsHashTable = {},
-					iLength = inputTexts.length;
+					iLength = MyInputTexts.length;
 
 				for (var i = 0; i < iLength; i++) {
-					var inputText = inputTexts[i];
+					var MyInputText = MyInputTexts[i];
 					// Compute text's words
-					var nrOfWords = inputText.text.match(/[^\s]+/g).length;
+					var nrOfWords = MyInputText.text.match(/[^\s]+/g).length;
 					// Initialize texts[]
-					self.texts.push(new Text(inputText.mode, inputText.text.length, nrOfWords, inputText.fileName, self.tokens.length));
+					self.texts.push(new Text(MyInputText.mode, MyInputText.text.length, nrOfWords, MyInputText.fileName, self.tokens.length));
 					// Initialize tokens[]
-					self._tokenizeInput(inputText.text);
+					self._tokenizeInput(MyInputText.text);
 					// Update text's last token position
 					self.texts[i].tkEndPos = self.tokens.length;
 					// Create array of forward references
@@ -2620,14 +2620,14 @@
 
 			/**
 			 * Tokenizes the input string.
-			 * @param {Object} inputText - the input string to be tokenized
+			 * @param {Object} MyInputText - the input string to be tokenized
 			 */
-			SimTexter.prototype._tokenizeInput = function (inputText) {
+			SimTexter.prototype._tokenizeInput = function (MyInputText) {
 				var self = this,
 					wordRegex = /[^\s]+/g,
 					match;
 
-				var cleanedText = self._cleanInputText(inputText);
+				var cleanedText = self._cleanMyInputText(MyInputText);
 
 				while (match = wordRegex.exec(cleanedText)) {
 					var word = match[0];

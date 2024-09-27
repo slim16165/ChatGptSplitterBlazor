@@ -3,6 +3,7 @@
 'use strict';
 
 var $           = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
+// ReSharper disable once JsPathNotFound
 var TargetMatch = require('../autoScroll/targetMatch.js');
 
 /**
@@ -27,7 +28,7 @@ function View(template) {
 	this.$inputPanel           = $('#input-panel');
 	this.$inputPanes           = $('#input-pane-1, #input-pane-2');
 	this.$inputFiles           = $('#input-file-1, #input-file-2');
-	this.$inputTexts           = $('#input-text-1, #input-text-2');
+	this.$MyInputTexts           = $('#input-text-1, #input-text-2');
 	this.$outputPanel          = $('#output-panel');
 	this.$outputTexts          = $('#comparison-output-1, #comparison-output-2');
 	this.$outputTextContainers = $('#comparison-output-1 > .comparison-output-container, #comparison-output-2 > .comparison-output-container');
@@ -75,7 +76,7 @@ View.prototype.bind = function(event, handler) {
 				  		minMatchLength = (minMatchLength < 1) ? 1 : minMatchLength; 
 						
 						handler(id, minMatchLength);
-				    	self.updateUIOption(id, 'inputText', minMatchLength);
+				    	self.updateUIOption(id, 'MyInputText', minMatchLength);
 					}
 				)
 				.on('click', '.btn', function(e) {
@@ -92,7 +93,7 @@ View.prototype.bind = function(event, handler) {
 					}
 					
 					handler(id, minMatchLength);
-				    self.updateUIOption(id, 'inputText', minMatchLength);
+				    self.updateUIOption(id, 'MyInputText', minMatchLength);
 				});
 			break;
 			
@@ -146,8 +147,8 @@ View.prototype.bind = function(event, handler) {
 			});
 			break;
 		
-		case 'inputText':
-			self.$inputTexts.on('change input', function(e) {
+		case 'MyInputText':
+			self.$MyInputTexts.on('change input', function(e) {
 				var elem = e.target;
 				var $elem = $(elem);
 				var tabPaneId = self._getId($elem.parents('.tab-pane'));
@@ -209,7 +210,7 @@ View.prototype.bind = function(event, handler) {
 				var id = self._getId(elem);
 				var idx = self._getIndex(id);
 				var newValue = $(elem).prop('checked');
-				var text = self.$inputTexts.eq(idx).val();
+				var text = self.$MyInputTexts.eq(idx).val();
 				handler(idx, newValue, text);
 			});
 			break;
@@ -400,7 +401,7 @@ View.prototype.resetScrollbars = function() {
 View.prototype._resetTextInputTabPanes = function() {
 	var self = this;
 	self.$htmlOptions.prop('checked', false);
-	self.$inputTexts.val('');
+	self.$MyInputTexts.val('');
 };
 
 /**

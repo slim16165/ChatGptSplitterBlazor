@@ -1,4 +1,6 @@
-﻿namespace ChatGPT_Splitter_Blazor_New.Bll;
+﻿using Tiktoken;
+
+namespace ChatGPT_Splitter_Blazor_New.Bll;
 
 public static class TextProcessingService
 {
@@ -7,7 +9,7 @@ public static class TextProcessingService
     {
         if (!string.IsNullOrEmpty(text))
         {
-            var encoding = Tiktoken.Encoding.ForModel("gpt-4");
+            var encoding = ModelToEncoder.For("gpt-4o");
             return encoding.CountTokens(text);
         }
         else

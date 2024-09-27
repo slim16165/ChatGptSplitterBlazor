@@ -1,16 +1,16 @@
 'use strict';
 
 /**
- * Creates an instance of a {InputText},
+ * Creates an instance of a {MyInputText},
  * which holds information on the user input.
  * @constructor
- * @this  {InputText}
+ * @this  {MyInputText}
  * @param {String} mode      - the mode of input (i.e. "file" or "text")
  * @param {File}   file      - the file selected by the user
  * @param {String} text      - the input string
  * @param {String} tabPaneId - the id of the tab pane
  */
-function InputText(mode, file, text, tabPaneId) {
+function MyInputText(mode, file, text, tabPaneId) {
 	this.tabPaneId  = tabPaneId;
 	this.mode       = mode;
 	this.isHTML     = false;
@@ -25,15 +25,15 @@ function InputText(mode, file, text, tabPaneId) {
  * 																					per page
  * @returns {Number}                      - the ca. number of pages
  */
-InputText.prototype.getNumberOfPages = function(maxCharactersPerPage) {
+MyInputText.prototype.getNumberOfPages = function(maxCharactersPerPage) {
 	return (this.text.length / maxCharactersPerPage);
 };
 
 /**
- * Resets some fields of the {InputText}.
+ * Resets some fields of the {MyInputText}.
  * @function
  */
-InputText.prototype.reset = function() {
+MyInputText.prototype.reset = function() {
 	this.tabPaneId  = undefined;
 	this.mode       = undefined;
 	this.fileName   = undefined;
@@ -47,7 +47,7 @@ InputText.prototype.reset = function() {
  * @param {String} text      - the file input string
  * @param {String} tabPaneId - the id of the tab pane
  */
-InputText.prototype.setFileInput = function(file, text, tabPaneId) {
+MyInputText.prototype.setFileInput = function(file, text, tabPaneId) {
 	this.tabPaneId  = tabPaneId;
 	this.mode       = 'File';
 	this.fileName   = file.name;
@@ -60,15 +60,15 @@ InputText.prototype.setFileInput = function(file, text, tabPaneId) {
  * @param {String} text      - the text input string
  * @param {String} tabPaneId - the id of the tab pane
  */
-InputText.prototype.setTextInput = function(text, tabPaneId) {
+MyInputText.prototype.setTextInput = function(text, tabPaneId) {
 	this.tabPaneId  = tabPaneId;
 	this.mode       = 'Text';
 	this.fileName   = (this.isHTML) ? 'HTML text input' : 'Plain text input';
 	this.text       = text;
 };
 
-InputText.prototype.setHTMLOption = function(newValue) {
+MyInputText.prototype.setHTMLOption = function(newValue) {
 	this.isHTML = newValue;
 };
 
-module.exports = InputText;
+module.exports = MyInputText;

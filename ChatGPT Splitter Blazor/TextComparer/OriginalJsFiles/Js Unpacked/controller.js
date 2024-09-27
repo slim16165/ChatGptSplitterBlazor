@@ -1,10 +1,10 @@
 (function (global){
 /* jshint undef:true, unused:true, node:true, browser:true */
 'use strict';
-
+// ReSharper disable JsPathNotFound
 var $               = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 var FileInputReader = require('../inputReader/fileInputReader.js');
-var InputText       = require('./inputText.js');
+var MyInputText       = require('./MyInputText.js');
 var SimTexter       = require('../simtexter/simtexter.js');
 var TextInputReader = require('../inputReader/textInputReader.js');
 
@@ -22,7 +22,7 @@ function Controller(storage, view) {
 	this.view                 = view;
 	this.maxCharactersPerPage = 1900;
 	this.maxNumberOfPages     = 500;
-	this.inputTexts           = [ new InputText(), new InputText() ];
+	this.MyInputTexts           = [ new MyInputText(), new MyInputText() ];
 	
 	this._bindEvents();
 	this._updateUI(this.storage.data);
@@ -32,16 +32,16 @@ function Controller(storage, view) {
  * Displays a warning message if input is too long (> maxNumberOfPages).
  * @function
  * @private
- * @param {Number} idx - the index of the {InputText} object in inputTexts[]
+ * @param {Number} idx - the index of the {MyInputText} object in MyInputTexts[]
  */
 Controller.prototype._alertLongInput = function(idx) {
 	var self = this;
 	
-	// Compute approximate number of pages for inputText
-	var nrOfPages = self.inputTexts[idx].getNumberOfPages(self.maxCharactersPerPage);
+	// Compute approximate number of pages for MyInputText
+	var nrOfPages = self.MyInputTexts[idx].getNumberOfPages(self.maxCharactersPerPage);
 	// If greater than maximum number of pages, display warning message
 	if (nrOfPages > self.maxNumberOfPages) {
-		var inputMode = self.inputTexts[idx].mode;
+		var inputMode = self.MyInputTexts[idx].mode;
 		var message = [
 				inputMode, ' ', (idx + 1), ' is too long. To prevent visualization issues, please consider truncating this ', inputMode.toLowerCase(), '.' 
 			].join('');
@@ -74,7 +74,7 @@ Controller.prototype._bindEvents = function() {
 		self._readFile(file, idx, loadingElem, tabPaneId);
 	});
 	
-	self.view.bind('inputText', function(text, idx, tabPaneId) {
+	self.view.bind('MyInputText', function(text, idx, tabPaneId) {
 		self._readText(text, idx, tabPaneId);
 	});
 	
@@ -87,9 +87,9 @@ Controller.prototype._bindEvents = function() {
 	self.view.bind('selectTab');
 	
 	self.view.bind('selectHTMLOption', function(idx, newValue, text) {
-		self.inputTexts[idx].setHTMLOption(newValue);
+		self.MyInputTexts[idx].setHTMLOption(newValue);
 		if (text) {
-			self._readText(text, idx, self.inputTexts[idx].tabPaneId);
+			self._readText(text, idx, self.MyInputTexts[idx].tabPaneId);
 		}
 	});
 	
@@ -116,7 +116,7 @@ Controller.prototype._compare = function() {
 		var simtexter = new SimTexter(self.storage);
 		
 		setTimeout(function() {
-			simtexter.compare(self.inputTexts).then(
+			simtexter.compare(self.MyInputTexts).then(
 				// On success, update information nodes and display similarities
 				function(nodes) {
 					self.view.results = {
@@ -164,21 +164,21 @@ Controller.prototype._isInputValid = function() {
 	var self = this,
 			isValid = true,
 			activeTabPaneIds = self.view.getActiveTabPaneIds(),
-			iTextsLength = self.inputTexts.length;
+			iTextsLength = self.MyInputTexts.length;
 	
 	for (var i = 0; i < iTextsLength; i++) {
-		var inputText = self.inputTexts[i];
+		var MyInputText = self.MyInputTexts[i];
 		var activeTabPaneId = activeTabPaneIds[i];
 		
-		var isInputTextValid = (inputText.text !== undefined && inputText.tabPaneId === activeTabPaneId);
+		var isMyInputTextValid = (MyInputText.text !== undefined && MyInputText.tabPaneId === activeTabPaneId);
 		
-		if (!isInputTextValid) {
+		if (!isMyInputTextValid) {
 			self.view.toggleErrorStatus('show', activeTabPaneId);
 		} else {
 			self.view.toggleErrorStatus('hide', activeTabPaneId);
 		}
 		
-		isValid = isValid && isInputTextValid;
+		isValid = isValid && isMyInputTextValid;
 	}
 	
 	return isValid;
@@ -206,12 +206,12 @@ Controller.prototype._print = function(hideModalPromise) {
 
 /**
  * Extracts the contents of the selected file
- * and updates the relevant fields of the {InputText} object.
+ * and updates the relevant fields of the {MyInputText} object.
  * @function
  * @private
  * @param {FileList} file        - the file selected by the user
- * @param {Number}   idx         - the index of the {InputText} object 
- * 																 in inputTexts[] to be updated.
+ * @param {Number}   idx         - the index of the {MyInputText} object 
+ * 																 in MyInputTexts[] to be updated.
  *                                 0: input in left-side pane 
  *                                 1: input in right-side pane
  * @param {Object}   loadingElem - the node element that shows 
@@ -223,15 +223,15 @@ Controller.prototype._readFile = function(file, idx, loadingElem, tabPaneId) {
 	    ignoreFootnotes = self.storage.getItemValueByKey('ignoreFootnotes');
 	    
 	var success = function(text) {
-			// Update {InputText} object
-			self.inputTexts[idx].setFileInput(file, text, tabPaneId);
+			// Update {MyInputText} object
+			self.MyInputTexts[idx].setFileInput(file, text, tabPaneId);
 			self.view.loading('done', loadingElem);
 			self.view.clearTabPaneTextInput(idx);
 			self._alertLongInput(idx);
 		};
 		
 		var error = function(message) {
-			self.inputTexts[idx].reset();
+			self.MyInputTexts[idx].reset();
 			self.view.loading('error', loadingElem);
 			self.view.clearTabPaneTextInput(idx);
 			
@@ -245,18 +245,18 @@ Controller.prototype._readFile = function(file, idx, loadingElem, tabPaneId) {
 		fileInputReader.readFileInput(loadingStarted).then(success, error);
 	} else {
 		self.view.loading('cancel', loadingElem);
-		self.inputTexts[idx].reset();
+		self.MyInputTexts[idx].reset();
 	}
 };
 
 /**
  * Extracts the contents of the typed/pasted HTML/plain text
- * and updates the relevant fields of the {InputText} object.
+ * and updates the relevant fields of the {MyInputText} object.
  * @function
  * @private
  * @param {String} text      - the HTML/plain text provided by the user
- * @param {Number} idx       - the index of the {InputText} object 
- * 														 in inputTexts[] to be updated.
+ * @param {Number} idx       - the index of the {MyInputText} object 
+ * 														 in MyInputTexts[] to be updated.
  *                             0: input in left-side pane, 
  *                             1: input in right-side pane
  * @param {String} tabPaneId - the id of the active tab pane
@@ -265,22 +265,22 @@ Controller.prototype._readText = function(text, idx, tabPaneId) {
 	var self = this;
 	
 	var success = function(cleanedText) {
-		// Update {InputText} object
-		self.inputTexts[idx].setTextInput(cleanedText, tabPaneId);
+		// Update {MyInputText} object
+		self.MyInputTexts[idx].setTextInput(cleanedText, tabPaneId);
 		self.view.toggleCompareBtn('enable');
 		self.view.clearTabPaneFileInput(idx);
 		self._alertLongInput(idx);
 	};
 	
 	var error = function(message) {
-		self.inputTexts[idx].reset();
+		self.MyInputTexts[idx].reset();
 		self.view.toggleCompareBtn('enable');
 		var delay = self._computeReadingSpeed(message);
 		self.view.showAlertMessage('error', message, delay);
 	};
 	
 	if (text.length > 0 && /\S/.test(text)) {
-		if (self.inputTexts[idx].isHTML) {
+		if (self.MyInputTexts[idx].isHTML) {
 			self.view.toggleCompareBtn('disable');
 			var textInputReader = new TextInputReader();
 			textInputReader.readTextInput(text).then(success, error);
@@ -288,7 +288,7 @@ Controller.prototype._readText = function(text, idx, tabPaneId) {
 			success(text);
 		}
 	} else {
-		self.inputTexts[idx].reset();
+		self.MyInputTexts[idx].reset();
 	}
 };
 

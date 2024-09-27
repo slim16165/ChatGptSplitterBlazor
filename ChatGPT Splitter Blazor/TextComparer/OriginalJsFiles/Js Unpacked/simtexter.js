@@ -1,6 +1,6 @@
 (function (global){
 /* jshint undef:true, unused:true, node:true, browser:true */
-'use strict';
+//'use strict';
 
 var $            = (typeof window !== "undefined" ? window['$'] : typeof global !== "undefined" ? global['$'] : null);
 var XRegExp      = (typeof window !== "undefined" ? window['XRegExp'] : typeof global !== "undefined" ? global['XRegExp'] : null);
@@ -32,24 +32,24 @@ function SimTexter(storage) {
  * When resolved, an array of nodes is returned,
  * which holds the text and the highlighted matches.
  * @function
- * @param {Array<InputText>} inputTexts - the array of {InputText} objects 
+ * @param {Array<MyInputText>} MyInputTexts - the array of {MyInputText} objects 
  *                                        which hold information about the user 
  * 																 				input
  */
-SimTexter.prototype.compare = function(inputTexts) {
+SimTexter.prototype.compare = function(MyInputTexts) {
 	var self     = this,
 			deferred = $.Deferred(),
 			forwardReferences = [],
 			similarities = [];
 	
 		// Read input (i.e. cleaning, tokenization)
-		self._readInput(inputTexts, forwardReferences);
+		self._readInput(MyInputTexts, forwardReferences);
 		// Get matches
 		similarities = self._getSimilarities(0, 1, forwardReferences);
 
 		if (similarities.length) {
 			// Return input string as HTML nodes
-			deferred.resolve(self._getNodes(inputTexts, similarities));
+			deferred.resolve(self._getNodes(MyInputTexts, similarities));
 		} else {
 			deferred.reject('No similarities found.');
 		}
@@ -159,17 +159,17 @@ SimTexter.prototype._buildRegex = function() {
  * Cleans the input string according to the comparison options set.
  * @function
  * @private
- * @param   {String} inputText - the input string
+ * @param   {String} MyInputText - the input string
  * @returns {String}           - the cleaned input string
  */
-SimTexter.prototype._cleanInputText = function(inputText) {
+SimTexter.prototype._cleanMyInputText = function(MyInputText) {
 	var self = this,
-			text = inputText;
+			text = MyInputText;
 			
 	var langRegex = self._buildRegex();
 	
 	if (langRegex) {
-		text = inputText.replace(langRegex, ' ');
+		text = MyInputText.replace(langRegex, ' ');
 	}
 	
 	if (self.ignoreLetterCase) {
@@ -296,26 +296,26 @@ SimTexter.prototype._getBestMatch = function(srcTxtIdx, trgTxtIdx, srcTkBeginPos
  * of each match.
  * @function
  * @private
- * @param   {Array} inputTexts - the array of {InputText} objects, 
+ * @param   {Array} MyInputTexts - the array of {MyInputText} objects, 
  * 															 which hold information about each user input
  * @param   {Array} matches    - the array that holds the {MatchSegment} objects, 
  * 															 stored in pairs
  * @returns {Array}            - the array of HTML nodes, 
  * 															 which holds the text and the highlighted matches
  */
-SimTexter.prototype._getNodes = function(inputTexts, matches) {
+SimTexter.prototype._getNodes = function(MyInputTexts, matches) {
 	var self = this,
-			iTextsLength = inputTexts.length,
+			iTextsLength = MyInputTexts.length,
 			nodes = [];
 	
 	var styledMatches = self._applyStyles(matches);
 		
 	// For each input text
 	for (var i = 0; i < iTextsLength; i++) {
-		var inputText = inputTexts[i].text,
+		var MyInputText = MyInputTexts[i].text,
 				chIdx = 0,
 				chIdxLast = chIdx,
-				chEndPos = inputText.length,
+				chEndPos = MyInputText.length,
 				mIdx = 0,
 				trgIdxRef = (i == 0) ? (i + 1) : (i - 1);
 				nodes[i] = [];
@@ -333,12 +333,12 @@ SimTexter.prototype._getNodes = function(inputTexts, matches) {
 				var mTxtEndPos = match.getTxtEndPos(self.tokens);
 				
 				// Create text node
-				var textNodeStr = inputText.slice(chIdxLast, mTxtBeginPos);
+				var textNodeStr = MyInputText.slice(chIdxLast, mTxtBeginPos);
 				var textNode = document.createTextNode(textNodeStr);
 				nodes[i].push(textNode);
 				
 				// Create link node for match segment
-				var linkNodeStr = inputText.slice(mTxtBeginPos, mTxtEndPos);
+				var linkNodeStr = MyInputText.slice(mTxtBeginPos, mTxtEndPos);
 				var linkNode = match.createLinkNode(linkNodeStr, sortedMatches[mIdx][trgIdxRef]);
 				nodes[i].push(linkNode);
 				
@@ -346,7 +346,7 @@ SimTexter.prototype._getNodes = function(inputTexts, matches) {
 				chIdx = mTxtEndPos;
 				chIdxLast = chIdx;
 			} else {
-				var lastTextNodeStr = inputText.slice(chIdxLast, chEndPos);
+				var lastTextNodeStr = MyInputText.slice(chIdxLast, chEndPos);
 				var lastTextNode = document.createTextNode(lastTextNodeStr);
 				nodes[i].push(lastTextNode);
 				chIdx = chEndPos;
@@ -432,23 +432,23 @@ SimTexter.prototype._makeForwardReferences = function(text, frwReferences, mtsTa
  * Creates also the forward reference table.
  * @function
  * @private
- * @param {Array} inputTexts    - the array of {InputText} objects
+ * @param {Array} MyInputTexts    - the array of {MyInputText} objects
  * 															  that hold information on the user input
  * @param {Array} frwReferences - the array of forward references
  */
-SimTexter.prototype._readInput = function(inputTexts, frwReferences) {
+SimTexter.prototype._readInput = function(MyInputTexts, frwReferences) {
 	var self         = this,
 	    mtsHashTable = {},
-	    iLength      = inputTexts.length;
+	    iLength      = MyInputTexts.length;
 		
 	for (var i = 0; i < iLength; i++) {
-		var inputText = inputTexts[i];
+		var MyInputText = MyInputTexts[i];
 		// Compute text's words
-		var nrOfWords = inputText.text.match(/[^\s]+/g).length;
+		var nrOfWords = MyInputText.text.match(/[^\s]+/g).length;
 		// Initialize texts[]
-		self.texts.push(new Text(inputText.mode, inputText.text.length, nrOfWords, inputText.fileName, self.tokens.length));
+		self.texts.push(new Text(MyInputText.mode, MyInputText.text.length, nrOfWords, MyInputText.fileName, self.tokens.length));
 		// Initialize tokens[]
-		self._tokenizeInput(inputText.text);
+		self._tokenizeInput(MyInputText.text);
 		// Update text's last token position
 		self.texts[i].tkEndPos = self.tokens.length;
 		// Create array of forward references
@@ -482,14 +482,14 @@ SimTexter.prototype._sortSimilarities = function(matches, idx) {
 
 /**
  * Tokenizes the input string.
- * @param {Object} inputText - the input string to be tokenized
+ * @param {Object} MyInputText - the input string to be tokenized
  */
-SimTexter.prototype._tokenizeInput = function(inputText) {
+SimTexter.prototype._tokenizeInput = function(MyInputText) {
 	var self        = this,
 		  wordRegex = /[^\s]+/g,
 		  match;
 	
-	var cleanedText = self._cleanInputText(inputText);
+	var cleanedText = self._cleanMyInputText(MyInputText);
 		
 	while (match = wordRegex.exec(cleanedText)) {
 		var word = match[0];

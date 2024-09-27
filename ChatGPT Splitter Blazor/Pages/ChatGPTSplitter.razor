@@ -1,13 +1,9 @@
 ﻿@page "/"
 @using ChatGPT_Splitter_Blazor_New.Bll
-@using OpenAI_API.Models
 @using PropertyChanged
-@using Microsoft.AspNetCore.Components
-@using OpenAI_API.Models
-@using PropertyChanged
+@using Tiktoken
 @inject ChatGptClient ChatGptClient
 @inject IJSRuntime JSRuntime
-
 
 <PageTitle>ChatGPT Splitter Blazor</PageTitle>
 
@@ -19,24 +15,14 @@
     </div>
 }
 
-
-
 <div class="container my-0" style="padding-bottom: 8rem;">
     <div class="row">
         <div class="col-12">
             <h1><a href="" @onclick="ReloadPage">ChatGPT Splitter</a></h1>
-
-            <p>
-                Welcome to <b>ChatGPT Splitter</b>! This tool allows you to...
-            </p>
+            <p>Welcome to <b>ChatGPT Splitter</b>! This tool allows you to...</p>
             <hr class="my-3">
 
             <EditForm Model="formData" OnValidSubmit="HandleValidSubmit">
-                @*  <div class="form-group">
-                <label for="file">Upload file(s)</label>
-                <InputFile id="file" class="form-control-file" @bind-Value="formData.File" multiple />
-                </div> *@
-                
                 @* Token *@
                 <div class="form-group mb-4">
                     <label for="apiToken">API Token:</label>
@@ -48,10 +34,8 @@
 
                 <div class="form-group">
                     <label for="text">Paste the text to split</label>
-                    <InputTextArea id="text" class="form-control" @bind-Value="formData.Text"
-                                   rows="8" placeholder="Or paste your text here" />
+                    <InputTextArea id="text" class="form-control" @bind-Value="formData.Text" rows="8" placeholder="Or paste your text here" />
                 </div>
-
 
                 <div class="row">
                     @* Prompt - Left Column *@
@@ -62,19 +46,14 @@
 
                     @* Token Count, Chunk Size, Number of Chunks - Right Columns *@
                     <div class="col-4 d-flex flex-column justify-content-start mt-4">
-
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <label>Token Count:</label>
                             <span>@TokenCount</span>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center">
-
                             <label for="chunk_size" class="pr-2">Chunk size:</label>
-
-                            <InputNumber id="chunk_size" class="form-control" @bind-Value="formData.ChunkSize"
-                                         style="width: 70%;" />
-
+                            <InputNumber id="chunk_size" class="form-control" @bind-Value="formData.ChunkSize" TValue="int" style="width: 70%;" />
                             <button class="btn btn-info ml-2" @onclick="ShowTooltip">
                                 <span class="oi oi-info" />
                             </button>
@@ -89,7 +68,6 @@
                                     Therefore, the suggested character range for the input field below is between 1,000 and 10,000. However, targeting 3,000 characters is advisable to avoid potential problems.
                                 </div>
                             }
-
                         </div>
 
                         @code {
@@ -103,8 +81,7 @@
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <label>Number of Chunks:</label>
-                            <InputNumber class="form-control" @bind-Value="NumberOfChunks"
-                                         style="width: 70%;" />
+                            <InputNumber class="form-control" @bind-Value="NumberOfChunks" TValue="int" style="width: 70%;" />
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-2">
@@ -134,7 +111,6 @@
     {
         <ChunkDisplay Chunk="@chunks[chunkIndex]" Response="@(responses.Count > chunkIndex ? responses[chunkIndex] : null)" Index="@chunkIndex" TotalChunks="@chunks.Count" />
     }
-
 </div>
 
 @code {
@@ -143,7 +119,6 @@
         formData = new FormDataViewModel(this);
         NumberOfChunks = 1;
     }
-
 
     private string apiToken;
 
@@ -155,7 +130,6 @@
     private async Task SaveToken()
     {
         await JSRuntime.InvokeVoidAsync("localStorageManager.setItem", "openai_api_token", apiToken);
-        // Aggiorna il token nel tuo client OpenAI
         ChatGptClient.UpdateToken(apiToken);
     }
 
@@ -231,7 +205,7 @@
 
         // 1. Conteggio dei Token
         //https://www.nuget.org/packages/Tiktoken/1.1.1#show-readme-container
-        var encoding = Tiktoken.Encoding.ForModel("gpt-4");
+        var encoding = ModelToEncoder.For("gpt-4o");
         var numberOfTokens = encoding.CountTokens(textValue);
 
         // 2. Determina il Numero di Chunk

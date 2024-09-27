@@ -14,7 +14,7 @@ var View       = require('./view.js');
 function App(namespace) {
 	// App's default settings (comparison & input reading options)
 	var defaults = {
-			'minMatchLength'    : { id: '#min-match-length',   type: 'inputText', value: 4     },
+			'minMatchLength'    : { id: '#min-match-length',   type: 'MyInputText', value: 4     },
 			'ignoreFootnotes'   : { id: '#ignore-footnotes',   type: 'checkbox',  value: false },
 			'ignoreLetterCase'  : { id: '#ignore-letter-case', type: 'checkbox',  value: true  },
 			'ignoreNumbers'     : { id: '#ignore-numbers',     type: 'checkbox',  value: false },
